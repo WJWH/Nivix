@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<meta charset="utf-8" />
 <html>
   <head>
     <!-- EXTERNAL LIBS-->
@@ -15,31 +16,43 @@
 
         // JSONP request
         var jsonData = $.ajax({
-          url: 'https://data.sparkfun.com/output/' + public_key + '.json',
-          data: {page: 1},
+          //url: 'https://data.sparkfun.com/output/' + public_key + '.json',
+          //https://data.sparkfun.com/output/3Jx3NmR66wIypMO3mb6r.json
+          //url: http://127.0.0.1/dynamic
+
+          //data: {page: 1}, //nu krijg je alles ipv alleen de eerste pagina
           dataType: 'jsonp',
         }).done(function (results) {
 
-          var data = new google.visualization.DataTable();
+          var batteryData = new google.visualization.DataTable();
+          var temperatureData = new google.visualization.DataTable();
 
-          data.addColumn('datetime', 'Time');
-          data.addColumn('number', 'Temp');
-          data.addColumn('number', 'Wind Speed MPH');
+          batteryData.addColumn('datetime', 'Time');
+          temperatureData.addColumn('datetime', 'Time');
+          batteryData.addColumn('number', 'Battery');
+          temperatureData.addColumn('number', 'Temperature');
 
           $.each(results, function (i, row) {
-            data.addRow([
+            batteryData.addRow([
               (new Date(row.timestamp)),
-              parseFloat(row.tempf),
-              parseFloat(row.windspeedmph)
+              parseFloat(row.battery),
+            ]);
+            temperatureData.addRow([
+              (new Date(row.timestamp)),
+              parseFloat(row.temperature)
             ]);
           });
 
-          var chart = new google.visualization.LineChart($('#chart').get(0));
-
-          chart.draw(data, {
-            title: 'Wimp Weather Station'
+          var batChart = new google.visualization.LineChart($('#batChart').get(0));
+          batChart.draw(batteryData, {
+            title: 'Battery'
           });
-
+          
+          var tempChart = new google.visualization.LineChart($('#tempChart').get(0));
+          tempChart.draw(temperatureData, {
+            title: 'Temperature',
+            hAxis: { format: 'dd MMM' }
+          });
         });
 
       }
@@ -56,6 +69,7 @@
 
   </head>
   <body>
-    <div id="chart" style="width: 100%;"></div>
+    <div id="batChart" style="width: 90%;"></div>
+    <div id="tempChart" style="width: 90%;"></div>
   </body>
 </html>
