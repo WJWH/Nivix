@@ -8,6 +8,7 @@ import Data.Sequence
 import Network.HTTP.Types.Status
 import System.Time
 import Web.Scotty
+-- import qualified Data.ByteString.Lazy.Char8 as BSL
 
 import Nivix.Types
 
@@ -32,9 +33,9 @@ main = do
     forkIO $ snitch snitchLastTime snitchChan
     scotty 3000 $ do
         get  "/" $ showDashboard --serve een static file met de homepage
-        get  "/history" $ getHistory seqref
-        get  "/snitch" $ getSnitch snitchLastTime
-        post "/event" $ receiveEvent firemind --een nieuwe event
+        get  "/history" $ getHistory --seqref
+        -- get  "/snitch" $ getSnitch snitchLastTime
+        post "/" $ receiveEvent firemind --een nieuwe event
         notFound show404                        -- deze matcht alles, net als "otherwise" in een guard
 
 --serve homepage/dashboard
@@ -46,16 +47,20 @@ showDashboard = do
 --ontvang een POST request, als het een geldig event is, schrijf het weg naar de 
 receiveEvent :: Chan Event -> ActionM ()
 receiveEvent firemind = do
-    event <- body
-    case decode event of
+    now <- liftIO getClockTime
+    liftIO $ print $ "received event at " ++ (show now)
+    bdy <- body
+    event <- (return $ decode bdy :: ActionM (Maybe Event))
+    case event of
         Nothing -> show404
-        Just (SENSOR si sv) -> (liftIO getClockTime) >>= (\(TOD x _) -> liftIO (writeChan firemind (SENSORWITHTIME x si sv))) --voegt tijd toe aan de event, want de Pi heeft geen real time clock
+        Just (STUW si sv) -> (liftIO getClockTime) >>= (\(TOD x _) -> liftIO (writeChan firemind (STUWWITHTIME x si sv))) --voegt tijd toe aan de event, want de Pi heeft geen real time clock
         Just evt -> liftIO (writeChan firemind evt)
     setHeader "Content-Type" "text/plain"
     shouldStayAlive <- liftIO $ readFile keepAliveFile
     case shouldStayAlive of
-        "YES"   -> text "YES"
+        "YES"   -> text "stayalive"
         "NO"    -> text "NO"
+        _       -> text "NO"
     
 
 --schrijft alle events naar het main logfile
@@ -63,7 +68,8 @@ persister :: Chan Event -> IO ()
 persister firemind = forever $ do
     currentEvent <- readChan firemind
     now <- getClockTime
-    (appendFile mainlog) $ concat [(show now)," ",(show currentEvent)]
+    (appendFile mainlog) $ concat [(show now)," ",(show currentEvent), "\n"]
+    print $ currentEvent
 
 --
 dashboardBufferer :: IORef (Seq Event) -> Chan Event -> IO ()
@@ -90,17 +96,19 @@ snitch ref chan = forever $ do
     writeIORef ref now --update de tijd
 
 --
-getHistory :: IORef (Seq Event) -> ActionM ()
-getHistory = undefined
+-- getHistory :: IORef (Seq Event) -> ActionM ()
+getHistory = do
+    setHeader "Content-Type" "text/html"
+    html "TODO: history implementeren"
 
 --returns het aantal seconden tussen nu en de laatste event die je tegen kwam
-getSnitch :: IORef ClockTime -> ActionM ()
-getSnitch ref = do
-    TOD now _ <- liftIO getClockTime
-    TOD last _ <- liftIO $ readIORef ref
-    setHeader "Content-Type" "text/html"
+-- getSnitch :: IORef ClockTime -> ActionM ()
+-- getSnitch ref = do
+    -- now <- liftIO getClockTime
+    -- (TOD last _) <- liftIO $ readIORef ref
+    -- setHeader "Content-Type" "text/html"
     -- html $ BL.pack . show (now-last) --(aantal seconden tussen toen en nu)
-    html "TODO: snitch implementeren"
+    -- html "TODO: snitch implementeren"
 
 show404 :: ActionM ()
 show404 = do
