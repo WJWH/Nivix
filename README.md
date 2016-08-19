@@ -1,2 +1,2 @@
 # Nivix
-Infrastructure project for my company.
+Tiny IOT server that accepts posts from a server I built and can serve the information out again in a nice format.
