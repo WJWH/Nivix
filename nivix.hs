@@ -1,7 +1,10 @@
 {-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 import Control.Monad.IO.Class
 import Data.Aeson
+import qualified Data.ByteString.Lazy.Char8 as BL8
 import Database.SQLite.Simple
+import qualified Data.Text.Lazy as TL
+import Data.Text.Encoding
 import Data.Time
 import GHC.Generics
 import Network.HTTP.Types
@@ -17,7 +20,7 @@ dbpath = "nivixdb.sqlite"
 
 main = do
     conn <- open dbpath
-    scotty 80 $ do
+    scotty 3000 $ do
         get  "/" $ showDashboard --serve een static file met de homepage
         get  "/history" $ getHistory conn
         post "/" $ receiveEvent conn --een nieuwe event
@@ -53,8 +56,19 @@ instance FromJSON Event
 --
 getHistory :: Connection -> ActionM ()
 getHistory conn = do
-    setHeader "Content-Type" "text/html"
-    html "TODO: history implementeren"
+    results <- liftIO $ (query_ conn "SELECT * from Measurements" :: IO [EventWithTime])
+    setHeader "Content-Type" "text/json"
+    text . TL.fromStrict . decodeLatin1 . BL8.toStrict $ encode results
+
+data EventWithTime = EventWithTime  { time :: UTCTime
+                                    , battery :: Double
+                                    , temperature :: Double
+                                    } deriving (Show,Eq,Generic)
+instance ToJSON EventWithTime
+instance FromJSON EventWithTime
+instance FromRow EventWithTime where
+      fromRow = EventWithTime <$> field <*> field <*> field
+
 
 show404 :: ActionM ()
 show404 = do

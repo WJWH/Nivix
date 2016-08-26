@@ -12,18 +12,12 @@
       // onload callback
       function drawChart() {
 
-        var public_key = '3Jx3NmR66wIypMO3mb6r';
-
-        // JSONP request
+        // JSON request
         var jsonData = $.ajax({
           //url: 'https://data.sparkfun.com/output/' + public_key + '.json',
-          //https://data.sparkfun.com/output/3Jx3NmR66wIypMO3mb6r.json
-          //url: http://127.0.0.1/dynamic
-
-          //data: {page: 1}, //nu krijg je alles ipv alleen de eerste pagina
-          dataType: 'jsonp',
+          //url: 'https://data.sparkfun.com/output/9Jx0zOnRO9T6ml6axK2Y.json',
+          url: 'http://localhost:3000/history'
         }).done(function (results) {
-
           var batteryData = new google.visualization.DataTable();
           var temperatureData = new google.visualization.DataTable();
 
@@ -34,11 +28,11 @@
 
           $.each(results, function (i, row) {
             batteryData.addRow([
-              (new Date(row.timestamp)),
+              (new Date(row.time)),
               parseFloat(row.battery),
             ]);
             temperatureData.addRow([
-              (new Date(row.timestamp)),
+              (new Date(row.time)),
               parseFloat(row.temperature)
             ]);
           });
