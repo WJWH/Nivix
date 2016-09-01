@@ -20,10 +20,10 @@ dbpath = "nivixdb.sqlite"
 
 main = do
     conn <- open dbpath
-    scotty 3000 $ do
+    scotty 80 $ do
         get  "/" $ showDashboard --serve een static file met de homepage
         get  "/history" $ getHistory conn
-        post "/" $ receiveEvent conn --een nieuwe event
+        post "/postmeasurement" $ receiveEvent conn --een nieuwe event
         notFound show404 -- deze matcht alles, net als "otherwise" in een guard
 
 --serve homepage/dashboard
