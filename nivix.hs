@@ -21,7 +21,7 @@ dbpath = "nivixdb.sqlite"
 main = do
     conn <- open dbpath
     scotty 80 $ do
-        get  "/" $ showDashboard --serve een static file met de homepage
+        get  "/dashboard" $ showDashboard --serve een static file met de homepage
         get  "/history" $ getHistory conn
         post "/postmeasurement" $ receiveEvent conn --een nieuwe event
         notFound show404 -- deze matcht alles, net als "otherwise" in een guard
