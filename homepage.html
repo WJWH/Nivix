@@ -14,9 +14,7 @@
 
         // JSON request
         var jsonData = $.ajax({
-          //url: 'https://data.sparkfun.com/output/' + public_key + '.json',
-          //url: 'https://data.sparkfun.com/output/9Jx0zOnRO9T6ml6axK2Y.json',
-          url: 'http://localhost:3000/history'
+          url: 'http://snokums.com/history'
         }).done(function (results) {
           var batteryData = new google.visualization.DataTable();
           var temperatureData = new google.visualization.DataTable();
