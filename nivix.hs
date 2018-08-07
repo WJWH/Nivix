@@ -18,23 +18,22 @@ import Web.Scotty
 
 dbpath = "nivixdb.sqlite"
 
-main = do
-    conn <- open dbpath
-    scotty 80 $ do
-        get  "/dashboard" $ showDashboard --serve een static file met de homepage
-        get  "/history" $ getHistory conn
-        post "/postmeasurement" $ receiveEvent conn --een nieuwe event
-        notFound show404 -- deze matcht alles, net als "otherwise" in een guard
+main = scotty 80 $ do
+    get  "/dashboard" $ showDashboard --serve een static file met de homepage
+    get  "/history" $ getHistory
+    post "/postmeasurement" $ receiveEvent --een nieuwe event
+    notFound show404 -- deze matcht alles, net als "otherwise" in een guard
 
 --serve homepage/dashboard
 showDashboard :: ActionM () --ActionM () is de type signature van een route handler, het is een monad waarin je de response kan samenstellen
 showDashboard = do
-    setHeader "Content-Type" "text/html" --sets the headers, in dit geval de Content-Type header met value text/plain
+    setHeader "Content-Type" "text/html" --sets the headers, in dit geval de Content-Type header met value text/html
     file "homepage.html" --body van de response is een file (scottytest.hs dus)
-        
---ontvang een POST request, als het een geldig event is, schrijf het weg naar de 
-receiveEvent :: Connection -> ActionM ()
-receiveEvent conn = do
+
+--ontvang een POST request, als het een geldig event is, schrijf het weg naar de database
+receiveEvent :: ActionM ()
+receiveEvent = do
+    conn <- open dbpath
     bdy <- body
     event <- (return $ decode bdy :: ActionM (Maybe Event))
     case (decode bdy) of
@@ -53,9 +52,10 @@ data Event = Stuw Double Double deriving (Show,Generic)
 instance ToJSON Event
 instance FromJSON Event
 
---
-getHistory :: Connection -> ActionM ()
-getHistory conn = do
+-- Will respond with a JSON blob containing the measurements so far
+getHistory :: ActionM ()
+getHistory = do
+    conn <- open dbpath
     results <- liftIO $ (query_ conn "SELECT * from Measurements" :: IO [EventWithTime])
     setHeader "Content-Type" "text/json"
     text . TL.fromStrict . decodeLatin1 . BL8.toStrict $ encode results
