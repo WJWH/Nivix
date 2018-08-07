@@ -18,11 +18,14 @@
         }).done(function (results) {
           var batteryData = new google.visualization.DataTable();
           var temperatureData = new google.visualization.DataTable();
+          var sensorData = new google.visualization.DataTable();
 
           batteryData.addColumn('datetime', 'Time');
           temperatureData.addColumn('datetime', 'Time');
+          sensorData.addColumn('datetime', 'Time');
           batteryData.addColumn('number', 'Battery');
           temperatureData.addColumn('number', 'Temperature');
+          sensorData.addColumn('number', 'Sensor');
 
           $.each(results, function (i, row) {
             batteryData.addRow([
@@ -33,16 +36,27 @@
               (new Date(row.time)),
               parseFloat(row.temperature)
             ]);
+            sensorData.addRow([
+              (new Date(row.time)),
+              parseFloat(row.sensorLevel)
+            ]);
           });
 
           var batChart = new google.visualization.LineChart($('#batChart').get(0));
           batChart.draw(batteryData, {
-            title: 'Battery'
+            title: 'Battery (V)',
+            hAxis: { format: 'dd MMM' }
           });
-          
+
           var tempChart = new google.visualization.LineChart($('#tempChart').get(0));
           tempChart.draw(temperatureData, {
-            title: 'Temperature',
+            title: 'Temperature (C)',
+            hAxis: { format: 'dd MMM' }
+          });
+
+          var sensorChart = new google.visualization.LineChart($('#sensorChart').get(0));
+          sensorChart.draw(sensorData, {
+            title: 'Sensor value',
             hAxis: { format: 'dd MMM' }
           });
         });
@@ -63,5 +77,6 @@
   <body>
     <div id="batChart" style="width: 90%;"></div>
     <div id="tempChart" style="width: 90%;"></div>
+    <div id="sensorChart" style="width: 90%;"></div>
   </body>
 </html>
