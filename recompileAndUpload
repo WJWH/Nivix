@@ -2,5 +2,5 @@
 ghc --make -threaded -rtsopts -with-rtsopts=-N -O2 nivix.hs
 rm *.o
 rm *.hi
-gcloud compute copy-files nivix firemind:nivix
+gcloud compute copy-files nivix wjw_hillen@nivix:nivix
 rm nivix
